@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | Reports</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToDashboard()"
+                >
+                    Dashboard
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToStudents()"
+                    style="margin-left: 10px;"
+                >
+                    Students
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToSubjects()"
+                    style="margin-left: 10px;"
+                >
+                    Subjects
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToAttendance()"
+                    style="margin-left: 10px;"
+                >
+                    Attendance
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- MAIN -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+
+            <!-- HEADER -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    STAFF REPORTS
+                </p>
+
+
+                <h1>
+                    Attendance Reports 📊
+                </h1>
+
+
+                <p>
+                    View attendance performance of students.
+                </p>
+
+            </section>
+
+
+
+            <!-- SUMMARY CARDS -->
+
+            <section class="stats-grid">
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Total Students
+                    </p>
+
+                    <h2 id="totalStudents">
+                        0
+                    </h2>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Total Records
+                    </p>
+
+                    <h2 id="totalRecords">
+                        0
+                    </h2>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Present
+                    </p>
+
+                    <h2 id="totalPresent">
+                        0
+                    </h2>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Absent
+                    </p>
+
+                    <h2 id="totalAbsent">
+                        0
+                    </h2>
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- OVERALL ATTENDANCE -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Overall Attendance
+                </h2>
+
+                <p>
+                    Attendance percentage based on all records.
+                </p>
+
+
+                <div class="report-percentage">
+
+                    <strong id="overallPercentage">
+                        0%
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ATTENDANCE CHART -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Attendance Overview
+                </h2>
+
+                <p>
+                    Overall present and absent attendance.
+                </p>
+
+
+                <div
+                    style="
+                        max-width: 500px;
+                        margin: 25px auto;
+                    "
+                >
+
+                    <canvas
+                        id="attendanceChart"
+                    ></canvas>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- STUDENT REPORT -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Student-wise Attendance
+                </h2>
+
+                <p>
+                    Attendance percentage of each student.
+                </p>
+
+
+                <!-- SEARCH -->
+
+                <div class="attendance-filters">
+
+                    <input
+                        type="text"
+                        id="searchStudent"
+                        placeholder="Search student by name or roll number"
+                    >
+
+                </div>
+
+
+                <!-- TABLE -->
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Student
+                                </th>
+
+                                <th>
+                                    Roll Number
+                                </th>
+
+                                <th>
+                                    Total Classes
+                                </th>
+
+                                <th>
+                                    Present
+                                </th>
+
+                                <th>
+                                    Absent
+                                </th>
+
+                                <th>
+                                    Attendance %
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="reportList">
+
+                            <tr>
+
+                                <td colspan="7">
+                                    Loading reports...
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+
+    <script>
+
+
+        /* ================================
+           TOKEN
+        ================================= */
+
+        const token =
+            localStorage.getItem("token");
+
+
+        if (!token) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+
+        /* ================================
+           DATA
+        ================================= */
+
+        let students = [];
+
+        let attendanceRecords = [];
+
+        let attendanceChart = null;
+
+
+
+        /* ================================
+           LOAD STUDENTS
+        ================================= */
+
+        async function loadStudents() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/student/all",
+                        {
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        data.message ||
+                        "Unable to load students."
+                    );
+
+                    return;
+
+                }
+
+
+                students = data;
+
+
+                document.getElementById(
+                    "totalStudents"
+                ).innerText =
+                    students.length;
+
+
+                generateReports();
+
+            } catch (error) {
+
+                console.error(
+                    "Students loading error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+
+        /* ================================
+           LOAD ATTENDANCE
+        ================================= */
+
+        async function loadAttendance() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/attendance",
+                        {
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        data.message ||
+                        "Unable to load attendance."
+                    );
+
+                    return;
+
+                }
+
+
+                attendanceRecords = data;
+
+
+                calculateSummary();
+
+                generateReports();
+
+                createAttendanceChart();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Attendance loading error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+
+        /* ================================
+           CALCULATE SUMMARY
+        ================================= */
+
+        function calculateSummary() {
+
+            const total =
+                attendanceRecords.length;
+
+
+            const present =
+                attendanceRecords.filter(
+                    item =>
+                        item.status === "Present"
+                ).length;
+
+
+            const absent =
+                attendanceRecords.filter(
+                    item =>
+                        item.status === "Absent"
+                ).length;
+
+
+            document.getElementById(
+                "totalRecords"
+            ).innerText =
+                total;
+
+
+            document.getElementById(
+                "totalPresent"
+            ).innerText =
+                present;
+
+
+            document.getElementById(
+                "totalAbsent"
+            ).innerText =
+                absent;
+
+
+            const percentage =
+                total === 0
+                    ? 0
+                    : (
+                        (present / total) *
+                        100
+                    ).toFixed(2);
+
+
+            document.getElementById(
+                "overallPercentage"
+            ).innerText =
+                percentage + "%";
+
+        }
+
+
+
+        /* ================================
+           CREATE ATTENDANCE CHART
+        ================================= */
+
+        function createAttendanceChart() {
+
+            const present =
+                attendanceRecords.filter(
+                    item =>
+                        item.status === "Present"
+                ).length;
+
+
+            const absent =
+                attendanceRecords.filter(
+                    item =>
+                        item.status === "Absent"
+                ).length;
+
+
+            const chartArea =
+                document.getElementById(
+                    "attendanceChart"
+                );
+
+
+            if (!chartArea) {
+                return;
+            }
+
+
+            /* Destroy old chart */
+
+            if (attendanceChart) {
+
+                attendanceChart.destroy();
+
+            }
+
+
+            attendanceChart =
+                new Chart(
+                    chartArea,
+                    {
+
+                        type: "doughnut",
+
+                        data: {
+
+                            labels: [
+                                "Present",
+                                "Absent"
+                            ],
+
+                            datasets: [{
+
+                                data: [
+                                    present,
+                                    absent
+                                ]
+
+                            }]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            plugins: {
+
+                                legend: {
+
+                                    position:
+                                        "bottom"
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+
+        /* ================================
+           GENERATE STUDENT REPORT
+        ================================= */
+
+        function generateReports() {
+
+            const reportList =
+                document.getElementById(
+                    "reportList"
+                );
+
+
+            if (
+                students.length === 0
+            ) {
+
+                reportList.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            No students found.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+
+            }
+
+
+            const search =
+                document.getElementById(
+                    "searchStudent"
+                ).value
+                .toLowerCase()
+                .trim();
+
+
+            const filteredStudents =
+                students.filter(
+                    student => {
+
+                        const name =
+                            (
+                                student.name ||
+                                ""
+                            )
+                            .toLowerCase();
+
+
+                        const roll =
+                            (
+                                student.rollNumber ||
+                                ""
+                            )
+                            .toLowerCase();
+
+
+                        return (
+                            name.includes(search) ||
+                            roll.includes(search)
+                        );
+
+                    }
+                );
+
+
+            reportList.innerHTML = "";
+
+
+            filteredStudents.forEach(
+                student => {
+
+
+                    const records =
+                        attendanceRecords.filter(
+                            item => {
+
+                                return (
+                                    item.student &&
+                                    item.student._id ===
+                                    student._id
+                                );
+
+                            }
+                        );
+
+
+                    const total =
+                        records.length;
+
+
+                    const present =
+                        records.filter(
+                            item =>
+                                item.status ===
+                                "Present"
+                        ).length;
+
+
+                    const absent =
+                        records.filter(
+                            item =>
+                                item.status ===
+                                "Absent"
+                        ).length;
+
+
+                    const percentage =
+                        total === 0
+                            ? 0
+                            : (
+                                (present / total) *
+                                100
+                            ).toFixed(2);
+
+
+                    let status =
+                        "Good";
+
+
+                    if (
+                        percentage < 75 &&
+                        total > 0
+                    ) {
+
+                        status =
+                            "Low Attendance";
+
+                    }
+
+
+                    if (total === 0) {
+
+                        status =
+                            "No Data";
+
+                    }
+
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            ${student.name}
+                        </td>
+
+
+                        <td>
+                            ${student.rollNumber || "-"}
+                        </td>
+
+
+                        <td>
+                            ${total}
+                        </td>
+
+
+                        <td>
+                            ${present}
+                        </td>
+
+
+                        <td>
+                            ${absent}
+                        </td>
+
+
+                        <td>
+                            ${percentage}%
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="status-badge ${
+                                    percentage < 75 &&
+                                    total > 0
+                                        ? "absent"
+                                        : "present"
+                                }"
+                            >
+
+                                ${status}
+
+                            </span>
+
+                        </td>
+
+                    `;
+
+
+                    reportList.appendChild(
+                        row
+                    );
+
+                }
+            );
+
+
+            if (
+                filteredStudents.length === 0
+            ) {
+
+                reportList.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            No student found.
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        }
+
+
+
+        /* ================================
+           SEARCH
+        ================================= */
+
+        document
+            .getElementById(
+                "searchStudent"
+            )
+            .addEventListener(
+                "input",
+                generateReports
+            );
+
+
+
+        /* ================================
+           NAVIGATION
+        ================================= */
+
+        function goToDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        function goToStudents() {
+
+            window.location.href =
+                "students.html";
+
+        }
+
+
+        function goToSubjects() {
+
+            window.location.href =
+                "subjects.html";
+
+        }
+
+
+        function goToAttendance() {
+
+            window.location.href =
+                "attendance.html";
+
+        }
+
+
+
+        /* ================================
+           LOGOUT
+        ================================= */
+
+        function logout() {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+
+        /* ================================
+           START
+        ================================= */
+
+        loadStudents();
+
+        loadAttendance();
+
+    </script>
+
+
+</body>
+
+</html>

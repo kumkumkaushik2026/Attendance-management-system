@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | Subjects</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToDashboard()"
+                >
+                    Dashboard
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+            <!-- HEADER -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    SUBJECT MANAGEMENT
+                </p>
+
+                <h1>
+                    Subjects 📚
+                </h1>
+
+                <p>
+                    Create and manage your subjects.
+                </p>
+
+            </section>
+
+
+            <!-- CREATE SUBJECT -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Add New Subject
+                </h2>
+
+                <p>
+                    Enter subject details below.
+                </p>
+
+
+                <form id="subjectForm">
+
+                    <div class="form-group">
+
+                        <label>
+                            Subject Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="subjectName"
+                            placeholder="e.g. Digital Marketing"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Subject Code
+                        </label>
+
+                        <input
+                            type="text"
+                            id="subjectCode"
+                            placeholder="e.g. DM301"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Department
+                        </label>
+
+                        <input
+                            type="text"
+                            id="department"
+                            placeholder="e.g. BBA-DM"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Semester
+                        </label>
+
+                        <input
+                            type="number"
+                            id="semester"
+                            placeholder="e.g. 3"
+                            min="1"
+                            max="8"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="login-button"
+                    >
+                        Add Subject
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- SUBJECT LIST -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    My Subjects
+                </h2>
+
+                <p>
+                    Subjects created by you.
+                </p>
+
+
+                <div
+                    id="subjectList"
+                    style="margin-top: 20px;"
+                >
+
+                    <div class="loading-text">
+                        Loading subjects...
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        const token =
+            localStorage.getItem("token");
+
+
+        if (!token) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+        // CREATE SUBJECT
+
+        document
+            .getElementById("subjectForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
+
+                    event.preventDefault();
+
+
+                    const name =
+                        document
+                            .getElementById("subjectName")
+                            .value
+                            .trim();
+
+
+                    const code =
+                        document
+                            .getElementById("subjectCode")
+                            .value
+                            .trim();
+
+
+                    const department =
+                        document
+                            .getElementById("department")
+                            .value
+                            .trim();
+
+
+                    const semester =
+                        document
+                            .getElementById("semester")
+                            .value;
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                "http://localhost:5000/api/subjects",
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json",
+
+                                        "Authorization":
+                                            "Bearer " + token
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            name,
+                                            code,
+                                            department,
+                                            semester
+                                        })
+                                }
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        if (!response.ok) {
+
+                            alert(
+                                data.message ||
+                                "Unable to create subject."
+                            );
+
+                            return;
+
+                        }
+
+
+                        alert(
+                            "Subject created successfully!"
+                        );
+
+
+                        document
+                            .getElementById("subjectForm")
+                            .reset();
+
+
+                        loadSubjects();
+
+
+                    } catch (error) {
+
+                        console.error(error);
+
+                        alert(
+                            "Unable to connect to server."
+                        );
+
+                    }
+
+                }
+            );
+
+
+        // LOAD SUBJECTS
+
+        async function loadSubjects() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/subjects",
+                        {
+                            method: "GET",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const subjects =
+                    await response.json();
+
+
+                const container =
+                    document.getElementById(
+                        "subjectList"
+                    );
+
+
+                if (!response.ok) {
+
+                    container.innerHTML = `
+                        <div class="loading-text">
+                            ${subjects.message || "Unable to load subjects."}
+                        </div>
+                    `;
+
+                    return;
+
+                }
+
+
+                if (
+                    !Array.isArray(subjects) ||
+                    subjects.length === 0
+                ) {
+
+                    container.innerHTML = `
+                        <div class="loading-text">
+                            No subjects found.
+                        </div>
+                    `;
+
+                    return;
+
+                }
+
+
+                container.innerHTML =
+                    subjects.map(
+                        subject => {
+
+                            return `
+
+                                <div class="attendance-table-row">
+
+                                    <div>
+
+                                        <strong>
+                                            ${subject.name}
+                                        </strong>
+
+                                    </div>
+
+                                    <div>
+                                        ${subject.code}
+                                    </div>
+
+                                    <div>
+                                        ${subject.department}
+                                    </div>
+
+                                    <div>
+                                        Semester ${subject.semester}
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    ).join("");
+
+
+            } catch (error) {
+
+                console.error(
+                    "Subjects loading error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        function goToDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        function logout() {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+        loadSubjects();
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | Students</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+</head>
+
+<body>
+
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToDashboard()"
+                >
+                    Dashboard
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+
+            <!-- PAGE HEADER -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    STUDENT MANAGEMENT
+                </p>
+
+                <h1>
+                    Students 👨‍🎓
+                </h1>
+
+                <p>
+                    View and manage registered students.
+                </p>
+
+            </section>
+
+
+            <!-- STUDENT LIST -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Student List
+                </h2>
+
+                <p>
+                    All registered students are shown below.
+                </p>
+
+
+                <div class="attendance-table">
+
+
+                    <!-- TABLE HEADER -->
+
+                    <div class="attendance-table-header">
+
+                        <div>
+                            Name
+                        </div>
+
+                        <div>
+                            Roll Number
+                        </div>
+
+                        <div>
+                            Department
+                        </div>
+
+                        <div>
+                            Semester
+                        </div>
+
+                    </div>
+
+
+                    <!-- STUDENT DATA -->
+
+                    <div id="studentList">
+
+                        <div class="loading-text">
+                            Loading students...
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+
+        // GET LOGIN TOKEN
+
+        const token =
+            localStorage.getItem("token");
+
+
+        // CHECK LOGIN
+
+        if (!token) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+        // LOAD ALL STUDENTS
+
+        async function loadStudents() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/student/all",
+                        {
+                            method: "GET",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const students =
+                    await response.json();
+
+
+                console.log(
+                    "Students API response:",
+                    students
+                );
+
+
+                const container =
+                    document.getElementById(
+                        "studentList"
+                    );
+
+
+                // CHECK ELEMENT
+
+                if (!container) {
+
+                    console.error(
+                        "studentList element not found"
+                    );
+
+                    return;
+
+                }
+
+
+                // CHECK API RESPONSE
+
+                if (!response.ok) {
+
+                    container.innerHTML = `
+                        <div class="loading-text">
+                            ${students.message || "Unable to load students."}
+                        </div>
+                    `;
+
+                    console.error(
+                        "Students API error:",
+                        students
+                    );
+
+                    return;
+
+                }
+
+
+                // NO STUDENTS
+
+                if (
+                    !Array.isArray(students) ||
+                    students.length === 0
+                ) {
+
+                    container.innerHTML = `
+                        <div class="loading-text">
+                            No students found.
+                        </div>
+                    `;
+
+                    return;
+
+                }
+
+
+                // SHOW STUDENTS
+
+                container.innerHTML =
+                    students.map(
+                        student => {
+
+                            return `
+
+                                <div class="attendance-table-row">
+
+                                    <div>
+
+                                        <strong>
+                                            ${student.name}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+                                        ${student.rollNumber || "-"}
+                                    </div>
+
+
+                                    <div>
+                                        ${student.department || "-"}
+                                    </div>
+
+
+                                    <div>
+                                        ${student.semester || "-"}
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    ).join("");
+
+
+            } catch (error) {
+
+                console.error(
+                    "Students loading error:",
+                    error
+                );
+
+
+                const container =
+                    document.getElementById(
+                        "studentList"
+                    );
+
+
+                if (container) {
+
+                    container.innerHTML = `
+                        <div class="loading-text">
+                            Unable to connect to server.
+                        </div>
+                    `;
+
+                }
+
+            }
+
+        }
+
+
+        // GO TO DASHBOARD
+
+        function goToDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        // LOGOUT
+
+        function logout() {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+        // START
+
+        loadStudents();
+
+
+    </script>
+
+
+</body>
+
+</html>

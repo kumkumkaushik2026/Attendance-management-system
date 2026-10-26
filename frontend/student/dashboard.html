@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | Student Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js"></script>
+</head>
+
+
+<body>
+
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToDashboard()"
+                >
+                    Dashboard
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToAttendance()"
+                    style="margin-left: 10px;"
+                >
+                    Attendance
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToProfile()"
+                    style="margin-left: 10px;"
+                >
+                    Profile
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <main class="dashboard">
+
+        <div class="container">
+
+
+            <!-- WELCOME -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    STUDENT DASHBOARD
+                </p>
+
+
+                <h1>
+                    Welcome, <span id="studentName">Student</span> 👋
+                </h1>
+
+
+                <p>
+                    Track your attendance and academic performance.
+                </p>
+
+            </section>
+
+
+
+            <!-- STAT CARDS -->
+
+            <section class="stats-grid">
+
+
+                <!-- OVERALL -->
+
+                <div class="stat-card">
+
+                    <p>
+                        Overall Attendance
+                    </p>
+
+                    <h2 id="overallAttendance">
+                        0%
+                    </h2>
+
+                </div>
+
+
+
+                <!-- PRESENT -->
+
+                <div class="stat-card">
+
+                    <p>
+                        Present Classes
+                    </p>
+
+                    <h2 id="presentClasses">
+                        0
+                    </h2>
+
+                </div>
+
+
+
+                <!-- ABSENT -->
+
+                <div class="stat-card">
+
+                    <p>
+                        Absent Classes
+                    </p>
+
+                    <h2 id="absentClasses">
+                        0
+                    </h2>
+
+                </div>
+
+
+            </section>
+          <!-- LOW ATTENDANCE WARNING -->
+
+<div
+    id="attendanceWarning"
+    class="attendance-warning"
+    style="display: none;"
+>
+    <strong>⚠️ Low Attendance Warning</strong>
+
+    <p>
+        Your attendance is below 75%.
+        Please attend more classes regularly.
+    </p>
+</div>
+
+
+            <!-- RECENT ATTENDANCE -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Recent Attendance
+                </h2>
+
+
+                <p>
+                    Your latest attendance records.
+                </p>
+
+
+                <div
+                    id="recentAttendance"
+                    class="attendance-list"
+                >
+
+                    <p>
+                        Loading attendance...
+                    </p>
+
+                </div>
+
+            </section>
+          <!-- SUBJECT-WISE ATTENDANCE -->
+
+<section class="dashboard-card">
+
+    <h2>
+        Subject-wise Attendance
+    </h2>
+
+    <p>
+        Check your attendance for each subject.
+    </p>
+
+    <div id="subjectAttendanceList">
+
+        <p>
+            Loading subject attendance...
+        </p>
+
+    </div>
+
+</section>
+
+
+
+            <section class="dashboard-card">
+
+                <h2>
+                    My Attendance Overview
+                </h2>
+
+
+                <p>
+                    Your present and absent classes.
+                </p>
+
+
+                <div
+                    style="
+                        max-width: 450px;
+                        margin: 25px auto;
+                    "
+                >
+
+                    <canvas
+                        id="studentAttendanceChart"
+                    ></canvas>
+
+                </div>
+
+            </section>
+
+
+
+        </div>
+
+    </main>
+
+
+
+    <script>
+
+
+        const token =
+            localStorage.getItem("token");
+
+
+        const user =
+            JSON.parse(
+                localStorage.getItem("user")
+            );
+
+
+        if (!token || !user) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+        if (user) {
+
+            document.getElementById(
+                "studentName"
+            ).innerText =
+                user.name;
+
+        }
+
+
+
+        let studentAttendanceChart = null;
+
+
+        async function loadAttendancePercentage() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/student/percentage",
+                        {
+                            method: "GET",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        data.message ||
+                        "Unable to load attendance."
+                    );
+
+                    return;
+
+                }
+
+
+
+                /* OVERALL */
+
+                document.getElementById(
+                    "overallAttendance"
+                ).innerText =
+                    data.attendancePercentage + "%";
+                // LOW ATTENDANCE WARNING
+
+const attendanceWarning =
+    document.getElementById(
+        "attendanceWarning"
+    );
+
+if (data.attendancePercentage < 75) {
+
+    attendanceWarning.style.display = "block";
+
+} else {
+
+    attendanceWarning.style.display = "none";
+
+}
+
+
+                /* PRESENT */
+
+                document.getElementById(
+                    "presentClasses"
+                ).innerText =
+                    data.presentClasses;
+
+
+
+                /* ABSENT */
+
+                document.getElementById(
+                    "absentClasses"
+                ).innerText =
+                    data.absentClasses;
+
+
+
+                /* CREATE CHART */
+
+                createStudentAttendanceChart(
+                    data.presentClasses,
+                    data.absentClasses
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Attendance percentage error:",
+                    error
+                );
+
+            }
+
+        }
+
+        function createStudentAttendanceChart(
+            present,
+            absent
+        ) {
+
+            const chartArea =
+                document.getElementById(
+                    "studentAttendanceChart"
+                );
+
+
+            if (!chartArea) {
+
+                return;
+
+            }
+
+            if (studentAttendanceChart) {
+
+                studentAttendanceChart.destroy();
+
+            }
+
+
+            studentAttendanceChart =
+                new Chart(
+                    chartArea,
+                    {
+
+                        type: "doughnut",
+
+                        data: {
+
+                            labels: [
+                                "Present",
+                                "Absent"
+                            ],
+
+                            datasets: [{
+
+                                data: [
+                                    present,
+                                    absent
+                                ]
+
+                            }]
+
+                        },
+
+
+                        options: {
+
+                            responsive: true,
+
+                            plugins: {
+
+                                legend: {
+
+                                    position:
+                                        "bottom"
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        async function loadRecentAttendance() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/student/attendance",
+                        {
+                            method: "GET",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        data.message ||
+                        "Unable to load attendance."
+                    );
+
+                    return;
+
+                }
+
+
+
+                const recentAttendance =
+                    document.getElementById(
+                        "recentAttendance"
+                    );
+
+
+                if (
+                    data.length === 0
+                ) {
+
+                    recentAttendance.innerHTML = `
+                        <p>
+                            No attendance records found.
+                        </p>
+                    `;
+
+                    return;
+
+                }
+
+
+
+                /* Show latest 5 records */
+
+                const recentRecords =
+                    data.slice(0, 5);
+
+
+                recentAttendance.innerHTML =
+                    recentRecords.map(
+                        item => {
+
+                            const date =
+                                new Date(
+                                    item.date
+                                ).toLocaleDateString(
+                                    "en-IN"
+                                );
+
+
+                            const subjectName =
+                                item.subject
+                                    ? item.subject.name
+                                    : "Unknown Subject";
+
+
+                            return `
+
+                                <div class="attendance-row">
+
+                                    <div>
+
+                                        <strong>
+                                            ${subjectName}
+                                        </strong>
+
+                                        <span>
+                                            ${date}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <span
+                                            class="status-badge ${
+                                                item.status ===
+                                                "Present"
+                                                    ? "present"
+                                                    : "absent"
+                                            }"
+                                        >
+                                            ${item.status}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    ).join("");
+
+
+            } catch (error) {
+
+                console.error(
+                    "Recent attendance error:",
+                    error
+                );
+
+            }
+
+        }
+
+async function loadSubjectWiseAttendance() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/student/subject-wise",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                data.message ||
+                "Unable to load subject attendance."
+            );
+
+            return;
+
+        }
+
+
+        const subjectAttendanceList =
+            document.getElementById(
+                "subjectAttendanceList"
+            );
+
+
+        if (data.length === 0) {
+
+            subjectAttendanceList.innerHTML = `
+                <p>
+                    No subject attendance records found.
+                </p>
+            `;
+
+            return;
+
+        }
+
+
+        subjectAttendanceList.innerHTML =
+            data.map(subject => {
+
+                return `
+
+                    <div class="attendance-row">
+
+                        <div>
+
+                            <strong>
+                                ${subject.subjectName}
+                            </strong>
+
+                            <span>
+                                ${subject.subjectCode}
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                ${subject.attendancePercentage}%
+                            </strong>
+
+                            <span>
+                                ${subject.presentClasses}
+                                Present /
+                                ${subject.absentClasses}
+                                Absent
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+
+    } catch (error) {
+
+        console.error(
+            "Subject-wise attendance error:",
+            error
+        );
+
+    }
+
+}
+
+
+        function goToDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        function goToAttendance() {
+
+            window.location.href =
+                "attendance.html";
+
+        }
+
+
+        function goToProfile() {
+
+            window.location.href =
+                "profile.html";
+
+        }
+
+        function logout() {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+
+            localStorage.removeItem(
+                "user"
+            );
+
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+        loadAttendancePercentage();
+
+        loadRecentAttendance();
+       loadSubjectWiseAttendance();
+    </script>
+
+
+</body>
+
+</html>

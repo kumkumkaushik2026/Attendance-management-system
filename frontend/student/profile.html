@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | My Profile</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToDashboard()"
+                >
+                    Dashboard
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="goToAttendance()"
+                    style="margin-left: 10px;"
+                >
+                    Attendance
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- MAIN -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+
+            <!-- HEADER -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    STUDENT PROFILE
+                </p>
+
+
+                <h1>
+                    My Profile 👤
+                </h1>
+
+
+                <p>
+                    View your personal and academic information.
+                </p>
+
+            </section>
+
+
+
+            <!-- PROFILE CARD -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Student Information
+                </h2>
+
+
+                <p>
+                    Your registered account details.
+                </p>
+
+
+                <div class="profile-details">
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Name
+                        </span>
+
+                        <strong id="studentName">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Email
+                        </span>
+
+                        <strong id="studentEmail">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Roll Number
+                        </span>
+
+                        <strong id="rollNumber">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Department
+                        </span>
+
+                        <strong id="department">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Semester
+                        </span>
+
+                        <strong id="semester">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+
+                    <div class="profile-item">
+
+                        <span>
+                            Role
+                        </span>
+
+                        <strong id="role">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+
+    <script>
+
+
+        /* TOKEN */
+
+        const token =
+            localStorage.getItem("token");
+
+
+        if (!token) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+
+        /* LOAD PROFILE */
+
+        async function loadProfile() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/student/profile",
+                        {
+                            method: "GET",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                const student =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        student.message ||
+                        "Unable to load profile."
+                    );
+
+                    return;
+
+                }
+
+
+                document.getElementById(
+                    "studentName"
+                ).innerText =
+                    student.name;
+
+
+                document.getElementById(
+                    "studentEmail"
+                ).innerText =
+                    student.email;
+
+
+                document.getElementById(
+                    "rollNumber"
+                ).innerText =
+                    student.rollNumber || "-";
+
+
+                document.getElementById(
+                    "department"
+                ).innerText =
+                    student.department || "-";
+
+
+                document.getElementById(
+                    "semester"
+                ).innerText =
+                    student.semester || "-";
+
+
+                document.getElementById(
+                    "role"
+                ).innerText =
+                    student.role;
+
+            } catch (error) {
+
+                console.error(
+                    "Profile loading error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+
+        /* NAVIGATION */
+
+        function goToDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        function goToAttendance() {
+
+            window.location.href =
+                "attendance.html";
+
+        }
+
+
+
+        /* LOGOUT */
+
+        function logout() {
+
+            localStorage.removeItem("token");
+
+            localStorage.removeItem("user");
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+
+        /* LOAD PROFILE */
+
+        loadProfile();
+
+    </script>
+
+
+</body>
+
+</html>

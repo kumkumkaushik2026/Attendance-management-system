@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AttendX | Staff Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+                Attend<span>X</span>
+            </div>
+
+            <div>
+
+                <button
+                    class="btn"
+                    onclick="goToStudents()"
+                >
+                    Students
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="goToSubjects()"
+                >
+                    Subjects
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="goToAttendance()"
+                >
+                    Attendance
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="logout()"
+                    style="margin-left: 10px;"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- DASHBOARD -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+            <!-- WELCOME -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+                    STAFF DASHBOARD
+                </p>
+
+                <h1>
+
+                    Welcome,
+
+                    <span
+                        id="staffName"
+                        class="gradient-text"
+                    >
+                        Staff
+                    </span>
+
+                    👋
+
+                </h1>
+
+                <p>
+                    Manage students, subjects and attendance from here.
+                </p>
+
+            </section>
+
+
+            <!-- STATS -->
+
+            <section class="stats-container">
+
+                <div class="stat-card">
+
+                    <p>Total Students</p>
+
+                    <h2 id="totalStudents">
+                        0
+                    </h2>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <p>Total Subjects</p>
+
+                    <h2 id="totalSubjects">
+                        0
+                    </h2>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <p>Attendance Records</p>
+
+                    <h2 id="totalAttendance">
+                        0
+                    </h2>
+
+                </div>
+
+            </section>
+
+
+            <!-- QUICK ACTIONS -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Quick Actions
+                </h2>
+
+                <p>
+                    Choose an option to manage the system.
+                </p>
+
+
+                <div class="stats-container">
+
+                    <div class="stat-card">
+
+                        <h3>
+                            👨‍🎓 Students
+                        </h3>
+
+                        <p>
+                            View and manage students
+                        </p>
+
+                        <button
+                            class="btn"
+                            onclick="goToStudents()"
+                        >
+                            Manage Students
+                        </button>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <h3>
+                            📚 Subjects
+                        </h3>
+
+                        <p>
+                            Create and manage subjects
+                        </p>
+
+                        <button
+                            class="btn"
+                            onclick="goToSubjects()"
+                        >
+                            Manage Subjects
+                        </button>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <h3>
+                            📋 Attendance
+                        </h3>
+
+                        <p>
+                            Mark and view attendance
+                        </p>
+
+                        <button
+                            class="btn"
+                            onclick="goToAttendance()"
+                        >
+                            Manage Attendance
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+    const userData =
+        localStorage.getItem("user");
+
+
+    if (userData) {
+
+        const user =
+            JSON.parse(userData);
+
+        document.getElementById(
+            "staffName"
+        ).innerText = user.name;
+
+    }
+
+
+    const token =
+        localStorage.getItem("token");
+
+
+    if (!token) {
+
+        window.location.href =
+            "../login.html";
+
+    }
+
+
+
+    /* ================================
+       LOAD TOTAL STUDENTS
+    ================================= */
+
+    async function loadTotalStudents() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://localhost:5000/api/student/all",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                    }
+                );
+
+
+            const students =
+                await response.json();
+
+
+            if (response.ok) {
+
+                document.getElementById(
+                    "totalStudents"
+                ).innerText =
+                    students.length;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Students loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* ================================
+       LOAD TOTAL SUBJECTS
+    ================================= */
+
+    async function loadTotalSubjects() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://localhost:5000/api/subjects",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                    }
+                );
+
+
+            const subjects =
+                await response.json();
+
+
+            if (response.ok) {
+
+                document.getElementById(
+                    "totalSubjects"
+                ).innerText =
+                    subjects.length;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Subjects loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* ================================
+       LOAD TOTAL ATTENDANCE
+    ================================= */
+
+    async function loadTotalAttendance() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://localhost:5000/api/attendance",
+                    {
+                        method: "GET",
+
+                        headers: {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                    }
+                );
+
+
+            const attendance =
+                await response.json();
+
+
+            if (response.ok) {
+
+                document.getElementById(
+                    "totalAttendance"
+                ).innerText =
+                    attendance.length;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Attendance loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* ================================
+       NAVIGATION
+    ================================= */
+
+    function goToStudents() {
+
+        window.location.href =
+            "students.html";
+
+    }
+
+
+    function goToSubjects() {
+
+        window.location.href =
+            "subjects.html";
+
+    }
+
+
+    function goToAttendance() {
+
+        window.location.href =
+            "attendance.html";
+
+    }
+
+
+
+    /* ================================
+       LOGOUT
+    ================================= */
+
+    function logout() {
+
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        window.location.href =
+            "../login.html";
+
+    }
+
+
+
+    /* ================================
+       LOAD DASHBOARD DATA
+    ================================= */
+
+    loadTotalStudents();
+
+    loadTotalSubjects();
+
+    loadTotalAttendance();
+
+</script>
+
+</body>
+
+</html>

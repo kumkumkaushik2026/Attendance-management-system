@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AttendX | Login
+    </title>
+
+
+    <!-- CSS -->
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ====================================
+         LOGIN PAGE
+    ===================================== -->
+
+    <main class="login-page">
+
+        <div class="container">
+
+
+            <!-- ====================================
+                 MAIN LOGIN BOX
+            ===================================== -->
+
+            <div class="login-box">
+
+
+                <!-- ====================================
+                     LEFT SIDE
+                ===================================== -->
+
+                <div class="login-left">
+
+
+                    <h1>
+
+                        Attend<span>X</span>
+
+                    </h1>
+
+
+                    <p>
+
+                        Smart attendance management
+                        made simple.
+
+                    </p>
+
+
+                    <div class="login-feature">
+
+                        <p>
+                            ✓ Easy attendance tracking
+                        </p>
+
+                        <p>
+                            ✓ Student & Staff access
+                        </p>
+
+                        <p>
+                            ✓ Attendance reports
+                        </p>
+
+                        <p>
+                            ✓ Secure login system
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- ====================================
+                     RIGHT SIDE
+                ===================================== -->
+
+                <div class="login-right">
+
+
+                    <!-- TITLE -->
+
+                    <h2 class="login-title">
+
+                        Welcome Back 👋
+
+                    </h2>
+
+
+                    <p class="login-description">
+
+                        Login to continue to your
+                        AttendX account.
+
+                    </p>
+
+
+
+                    <!-- ====================================
+                         ROLE
+                    ===================================== -->
+
+                    <p class="role-title">
+
+                        Select your role
+
+                    </p>
+
+
+                    <div class="role-container">
+
+
+                        <!-- STUDENT -->
+
+                        <button
+                            type="button"
+                            class="role-btn active"
+                            id="studentRole"
+                            onclick="selectRole('student')"
+                        >
+
+                            🎓 Student
+
+                        </button>
+
+
+                        <!-- STAFF -->
+
+                        <button
+                            type="button"
+                            class="role-btn"
+                            id="staffRole"
+                            onclick="selectRole('staff')"
+                        >
+
+                            👨‍🏫 Staff
+
+                        </button>
+
+
+                    </div>
+
+
+
+                    <!-- ====================================
+                         LOGIN FORM
+                    ===================================== -->
+
+                    <form
+                        onsubmit="loginUser(event)"
+                    >
+
+
+                        <!-- EMAIL -->
+
+                        <div class="input-group">
+
+                            <label for="email">
+
+                                Email Address
+
+                            </label>
+
+
+                            <input
+                                type="email"
+                                id="email"
+                                class="input"
+                                placeholder="Enter your email"
+                                required
+                            >
+
+                        </div>
+
+
+
+                        <!-- PASSWORD -->
+
+                        <div class="input-group">
+
+                            <label for="password">
+
+                                Password
+
+                            </label>
+
+
+                            <div class="password-box">
+
+
+                                <input
+                                    type="password"
+                                    id="password"
+                                    class="input"
+                                    placeholder="Enter your password"
+                                    required
+                                >
+
+
+                                <button
+                                    type="button"
+                                    class="show-password"
+                                    id="passwordButton"
+                                    onclick="togglePassword()"
+                                >
+
+                                    Show
+
+                                </button>
+
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- LOGIN -->
+
+                        <button
+                            type="submit"
+                            class="btn login-button"
+                        >
+
+                            Login →
+
+                        </button>
+
+
+                    </form>
+
+
+
+                    <!-- BACK HOME -->
+
+                    <a
+                        href="index.html"
+                        class="back-home"
+                    >
+
+                        ← Back to Home
+
+                    </a>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- ====================================
+         JAVASCRIPT
+    ===================================== -->
+
+    <script>
+
+
+        /* ====================================
+           SELECTED ROLE
+        ===================================== */
+
+        let selectedRole = "student";
+
+
+
+        /* ====================================
+           SELECT ROLE FUNCTION
+        ===================================== */
+
+        function selectRole(role) {
+
+            selectedRole = role;
+
+
+            const studentRole =
+                document.getElementById(
+                    "studentRole"
+                );
+
+
+            const staffRole =
+                document.getElementById(
+                    "staffRole"
+                );
+
+
+            studentRole.classList.remove(
+                "active"
+            );
+
+
+            staffRole.classList.remove(
+                "active"
+            );
+
+
+            if (role === "student") {
+
+                studentRole.classList.add(
+                    "active"
+                );
+
+            } else {
+
+                staffRole.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+
+
+
+        /* ====================================
+           SHOW / HIDE PASSWORD
+        ===================================== */
+
+        function togglePassword() {
+
+            const password =
+                document.getElementById(
+                    "password"
+                );
+
+
+            const button =
+                document.getElementById(
+                    "passwordButton"
+                );
+
+
+            if (
+                password.type === "password"
+            ) {
+
+                password.type = "text";
+
+                button.innerText = "Hide";
+
+            } else {
+
+                password.type = "password";
+
+                button.innerText = "Show";
+
+            }
+
+        }
+
+
+
+        /* ====================================
+           LOGIN FUNCTION
+        ===================================== */
+
+        
+
+    </script>
+<script src="js/auth.js"></script>
+
+</body>
+
+</html>

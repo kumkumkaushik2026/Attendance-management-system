@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AttendX | My Attendance
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- NAVBAR -->
+
+    <nav class="navbar">
+
+        <div class="container navbar-content">
+
+            <div class="logo">
+
+                Attend<span>X</span>
+
+            </div>
+
+
+            <button
+                class="btn"
+                onclick="goBack()"
+            >
+
+                Dashboard
+
+            </button>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- ATTENDANCE PAGE -->
+
+    <main class="dashboard">
+
+        <div class="container">
+
+
+            <!-- PAGE TITLE -->
+
+            <section class="welcome-section">
+
+                <p class="dashboard-small-text">
+
+                    ATTENDANCE
+
+                </p>
+
+
+                <h1>
+
+                    My Attendance 📋
+
+                </h1>
+
+
+                <p>
+
+                    View your complete attendance history.
+
+                </p>
+
+            </section>
+
+
+
+            <!-- STATS -->
+
+            <section class="stats-container">
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Overall Attendance
+                    </p>
+
+                    <h2 id="percentage">
+                        0%
+                    </h2>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Present
+                    </p>
+
+                    <h2 id="present">
+                        0
+                    </h2>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <p>
+                        Absent
+                    </p>
+
+                    <h2 id="absent">
+                        0
+                    </h2>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ATTENDANCE LIST -->
+
+            <section class="dashboard-card">
+
+                <h2>
+                    Attendance History
+                </h2>
+
+
+                <p>
+                    All your attendance records
+                </p>
+
+
+                <div id="attendanceList">
+
+                    Loading attendance...
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+        <!-- ATTENDANCE CALENDAR -->
+
+<section class="dashboard-card">
+
+    <h2>
+        Attendance Calendar 📅
+    </h2>
+
+    <p>
+        View your attendance date by date.
+    </p>
+
+    <div
+        id="attendanceCalendar"
+        style="margin-top: 25px;"
+    ></div>
+
+</section>
+    </main>
+
+
+
+    <script>
+
+        const token =
+            localStorage.getItem("token");
+
+
+        if (!token) {
+
+            window.location.href =
+                "../login.html";
+
+        }
+
+
+
+        /* =================================
+           LOAD ATTENDANCE
+        ================================= */
+
+        async function loadAttendance() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/student/attendance",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                data.message ||
+                "Unable to load attendance."
+            );
+
+            return;
+
+        }
+
+
+        /* ================================
+           ATTENDANCE TABLE
+        ================================= */
+
+        const attendanceList =
+            document.getElementById("attendanceList");
+
+
+        if (data.length === 0) {
+
+            attendanceList.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        No attendance records found.
+                    </td>
+                </tr>
+            `;
+
+        } else {
+
+            attendanceList.innerHTML =
+                data.map(item => {
+
+                    const date =
+                        new Date(item.date)
+                            .toLocaleDateString("en-IN");
+
+
+                    const subjectName =
+                        item.subject
+                            ? item.subject.name
+                            : "Unknown Subject";
+
+
+                    const subjectCode =
+                        item.subject
+                            ? item.subject.code
+                            : "-";
+
+
+                    return `
+                        <tr>
+
+                            <td>
+                                ${subjectName}
+                            </td>
+
+                            <td>
+                                ${subjectCode}
+                            </td>
+
+                            <td>
+                                ${date}
+                            </td>
+
+                            <td>
+
+                                <span
+                                    class="status-badge ${
+                                        item.status === "Present"
+                                            ? "present"
+                                            : "absent"
+                                    }"
+                                >
+                                    ${item.status}
+                                </span>
+
+                            </td>
+
+                        </tr>
+                    `;
+
+                }).join("");
+
+        }
+
+
+        /* ================================
+           ATTENDANCE CALENDAR
+        ================================= */
+
+        const events = data.map(item => ({
+
+            title: item.status,
+
+            start: item.date,
+
+            backgroundColor:
+                item.status === "Present"
+                    ? "#4ade80"
+                    : "#ff6b6b",
+
+            borderColor:
+                item.status === "Present"
+                    ? "#4ade80"
+                    : "#ff6b6b"
+
+        }));
+
+
+        /* Calendar element */
+
+        const calendarElement =
+            document.getElementById(
+                "attendanceCalendar"
+            );
+
+
+        if (calendarElement) {
+
+            const calendar =
+                new FullCalendar.Calendar(
+                    calendarElement,
+                    {
+
+                        initialView:
+                            "dayGridMonth",
+
+                        height: 550,
+
+                        events: events
+
+                    }
+                );
+
+
+            calendar.render();
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Attendance loading error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+        /* =================================
+           GO TO DASHBOARD
+        ================================= */
+
+        function goBack() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+
+        /* RUN */
+
+        loadAttendance();
+
+    </script>
+
+
+</body>
+
+</html>
